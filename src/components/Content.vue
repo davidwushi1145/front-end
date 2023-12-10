@@ -23,8 +23,9 @@
             height: 420px;
             margin-bottom: -30px;
           "
-                 type="border-card">
-          <el-tab-pane label="安全帽检测">
+                 type="border-card"
+                 v-model="activeTab">
+          <el-tab-pane label="安全帽检测" name="helmet">
             <el-card
                 id="CT_image_1"
                 class="box-card"
@@ -50,7 +51,7 @@
                     <div slot="error">
                       <div slot="placeholder" class="error">
                         <el-button
-                            v-show="showbutton"
+                            v-show="showbutton1"
                             class="download_bt"
                             icon="el-icon-upload"
                             type="primary"
@@ -96,7 +97,7 @@
               </div>
             </el-card>
           </el-tab-pane>
-          <el-tab-pane label="危险区域检测">
+          <el-tab-pane label="危险区域检测" name="danger">
             <el-card
                 id="CT_image_1"
                 class="box-card"
@@ -115,14 +116,14 @@
                 >
                   <el-image
                       :preview-src-list="srcList"
-                      :src="url_1"
+                      :src="url_3"
                       class="image_1"
                       style="border-radius: 3px 3px 0 0"
                   >
                     <div slot="error">
                       <div slot="placeholder" class="error">
                         <el-button
-                            v-show="showbutton"
+                            v-show="showbutton2"
                             class="download_bt"
                             icon="el-icon-upload"
                             type="primary"
@@ -153,7 +154,7 @@
                 >
                   <el-image
                       :preview-src-list="srcList1"
-                      :src="url_2"
+                      :src="url_4"
                       class="image_1"
                       style="border-radius: 3px 3px 0 0"
                   >
@@ -180,22 +181,39 @@
           <div slot="header" class="clearfix">
             <span>检测目标</span>
             <el-button
-                v-show="!showbutton"
+                v-show="activeTab === 'helmet' && !showbutton1"
                 class="download_bt"
                 icon="el-icon-upload"
-                style="margin-left: 35px"
                 type="primary"
                 v-on:click="true_upload2"
             >
               重新选择图像
               <input
-                  ref="upload2"
+                  ref="uploadHelmet"
                   name="file"
                   style="display: none"
                   type="file"
                   @change="update"
               />
             </el-button>
+
+            <el-button
+                v-show="activeTab === 'danger' && !showbutton2"
+                class="download_bt"
+                icon="el-icon-upload"
+                type="primary"
+                v-on:click="true_upload"
+            >
+              重新选择图像
+              <input
+                  ref="uploadDanger"
+                  name="file"
+                  style="display: none"
+                  type="file"
+                  @change="up"
+              />
+            </el-button>
+
           </div>
           <el-tabs v-model="activeName">
             <el-tab-pane label="检测到的目标" name="first">
@@ -238,7 +256,11 @@ export default {
       loadingFinished: false,
       url_1: "",
       url_2: "",
+      url_3: "",
+      url_4: "",
+      activeTab: 'helmet',
       textarea: "",
+      updateKey: 1,
       srcList: [],
       srcList1: [],
       feature_list: [],
@@ -251,7 +273,8 @@ export default {
       loading: false,
       table: false,
       isNav: false,
-      showbutton: true,
+      showbutton1: true,
+      showbutton2: true,
       percentage: 0,
       fullscreenLoading: false,
       opacitys: {
@@ -308,7 +331,7 @@ export default {
       this.feat_list = [];
       this.fullscreenLoading = true;
       this.loading = true;
-      this.showbutton = false;
+      this.showbutton1 = false;
       let file = e.target.files[0];
       this.url_1 = this.$options.methods.getObjectURL(file);
       let param = new FormData(); //创建form对象
@@ -389,8 +412,8 @@ export default {
       this.loadingFinished = false;
       this.percentage = 0;
       this.dialogTableVisible = true;
-      this.url_1 = "";
-      this.url_2 = "";
+      this.url_3 = "";
+      this.url_4 = "";
       this.srcList = [];
       this.srcList1 = [];
       this.wait_return = "";
@@ -399,9 +422,9 @@ export default {
       this.feat_list = [];
       this.fullscreenLoading = true;
       this.loading = true;
-      this.showbutton = false;
+      this.showbutton2 = false;
       let file = e.target.files[0];
-      this.url_1 = this.$options.methods.getObjectURL(file);
+      this.url_3 = this.$options.methods.getObjectURL(file);
       let param = new FormData(); //创建form对象
       param.append("file", file, file.name); //通过append向form对象添加数据
       var timer = setInterval(() => {
@@ -415,10 +438,10 @@ export default {
           .then((response) => {
             this.percentage = 100;
             clearInterval(timer);
-            this.url_1 = response.data.image_url;
-            this.srcList.push(this.url_1);
-            this.url_2 = response.data.draw_url;
-            this.srcList1.push(this.url_2);
+            this.url_3 = response.data.image_url;
+            this.srcList.push(this.url_3);
+            this.url_4 = response.data.draw_url;
+            this.srcList1.push(this.url_4);
             this.fullscreenLoading = false;
             this.loading = false;
 
@@ -494,8 +517,13 @@ export default {
         }
       }
     },
-
     drawChart() {
+    },
+    key() {
+      this.updateKey++;
+    },
+    refreshPage() {
+      location.reload();
     },
     notice1() {
       this.$notify({
